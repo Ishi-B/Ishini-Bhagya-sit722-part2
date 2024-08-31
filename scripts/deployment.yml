@@ -1,1 +1,39 @@
-# Write Kubernetes Deployment Script
+# Define a Deployment resource
+apiVersion: apps/v1  # Specifies the API version to use for the deployment resource.
+kind: Deployment  # Indicates that this is a Kubernetes Deployment object.
+metadata:
+  name: book-catalog  # The name of the deployment, used to uniquely identify the deployment within the namespace.
+spec:
+  replicas: 1  # Specifies the number of pod replicas to run. Here, we are running one instance of the book-catalog app.
+  selector:
+    matchLabels:
+      app: book-catalog  # Selector to match pods with this label, used to manage the deployment.
+  template:
+    metadata:
+      labels:
+        app: book-catalog  # Labels applied to the pods created by this deployment. Must match the selector.
+    spec:
+      containers:  # Define the list of containers that will run in the pod.
+      - name: book-catalog  # The name of the container, which can be different from the image name.
+        image: book-assignment-part-two:latest  # The Docker image to be used for this container. It uses the local Docker image named 'book-assignment-part-two'.
+        imagePullPolicy: Never  # Ensures Kubernetes uses the locally built image instead of pulling from a remote repository.
+        env:
+        - name: DATABASE_URL  # Define an environment variable named DATABASE_URL.
+          value: "postgresql://book_catalog_db_cdhl_user:6fsF1p8TFQ1Gk3AKNWp7ceJ6atGtyt4X@dpg-cr9clcd6l47c73ckqtdg-a.oregon-postgres.render.com/book_catalog_db_cdhl"  # The value of the DATABASE_URL environment variable, which is the connection string to the PostgreSQL database hosted on Render.
+        ports:
+        - containerPort: 80  # The port that this container exposes. The application inside the container is expected to listen on port 80.
+
+# Define a Service resource
+---
+apiVersion: v1  # Specifies the API version to use for the service resource.
+kind: Service  # Indicates that this is a Kubernetes Service object.
+metadata:
+  name: book-catalog  # The name of the service, used to uniquely identify the service within the namespace.
+spec:
+  selector:
+    app: book-catalog  # The service will route traffic to the pods that match this label selector.
+  ports:
+    - protocol: TCP  # The protocol used by the service. In this case, TCP.
+      port: 80  # The port that the service will expose to the external world.
+      targetPort: 80  # The port on the container to which the service will forward traffic. This should match the containerPort defined earlier.
+  type: LoadBalancer  # The type of service. LoadBalancer type exposes the service externally using a cloud provider's load balancer.
